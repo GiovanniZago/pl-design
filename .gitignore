@@ -1,0 +1,30 @@
+# exclude folders
+/.vscode
+/__pycache__
+link/*
+/package
+hw-emu/*
+hw-run/*
+data/
+**/hw
+**/x86
+*.hdf5
+**/_x
+**/.Xil
+**/proj
+
+# exclude file formats
+*.xo
+*.log
+*.compile_summary
+*.out
+*.txt
+*.csv
+
+# exclude scripts and specific files
+config.py
+
+# allow only specific files
+!link/system.cfg
+!hw-emu/xrt.ini
+!aie*/data
