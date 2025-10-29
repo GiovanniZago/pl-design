@@ -20,6 +20,7 @@ data/
 *.out
 *.txt
 *.csv
+*.dump
 
 # exclude scripts and specific files
 config.py

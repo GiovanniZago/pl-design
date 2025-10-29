@@ -20,68 +20,59 @@ void mm2s(
     #pragma HLS INTERFACE s_axilite port=mem bundle=control
     #pragma HLS INTERFACE s_axilite port=return bundle=control
 
-    unsigned long long headers[ORBIT_SIZE];
+    ap_uint<64> headers[ORBIT_SIZE];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++) // burst memory access
     {
-        headers[ii] = mem[ii];
+        headers[ii] = ap_uint<64>(mem[ii]);
     }
 
-    unsigned int orbit[ORBIT_SIZE], bx[ORBIT_SIZE], num_cands[ORBIT_SIZE];
+    ap_uint<12> bx[ORBIT_SIZE];
+    ap_uint<32> orbit[ORBIT_SIZE];
+    ap_uint<12> num_cands[ORBIT_SIZE];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
     {
-        #pragma HLS PIPELINE II=1
+        #pragma HLS UNROLL
 
-        bx[ii]        = (headers[ii] >> 12) & 0xFFF;
-        orbit[ii]     = (headers[ii] >> 24) & 0xFFFFFFFF;
-        num_cands[ii] = headers[ii] & 0xFFF;
+        bx[ii]        = headers[ii].range(23, 12);
+        orbit[ii]     = headers[ii].range(55, 24);
+        num_cands[ii] = headers[ii].range(11, 0);
     }
 
     unsigned int event_base = 0;
     unsigned int stream_port_index = 0;
 
-    unsigned long long words[MAX_CANDS];
-    ap_uint<16> pt[MAX_CANDS];
-    ap_int<16> eta[MAX_CANDS];
-    ap_int<16> phi[MAX_CANDS];
-    ap_uint<16> pid[MAX_CANDS];
-
-    #pragma HLS BIND_STORAGE variable=words type=ram_1p impl=bram
-    #pragma HLS BIND_STORAGE variable=pt    type=ram_1p impl=bram
-    #pragma HLS BIND_STORAGE variable=eta   type=ram_1p impl=bram
-    #pragma HLS BIND_STORAGE variable=phi   type=ram_1p impl=bram
-    #pragma HLS BIND_STORAGE variable=pid   type=ram_1p impl=bram
+    ap_uint<64> words[MAX_CANDS];
+    ap_uint<16> pt   [MAX_CANDS];
+    ap_int<16>  eta  [MAX_CANDS];
+    ap_int<16>  phi  [MAX_CANDS];
+    ap_uint<16> pid  [MAX_CANDS];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
     {
-        #pragma HLS PIPELINE II=1
-
         for (unsigned int jj=0; jj<num_cands[ii]; jj++) // burst memory access
         {
-            words[jj] = mem[ORBIT_SIZE + event_base + jj];
+            words[jj] = ap_uint<64>(mem[ORBIT_SIZE + event_base + jj]);
         }
 
         for (unsigned int jj=0; jj<num_cands[ii]; jj++)
         {
             #pragma HLS PIPELINE II=1
 
-            pt[jj] = words[jj] & 0x1FFF; // pt is 13-bit wide
+            pt[jj] = words[jj].range(13, 0); // pt is 13-bit wide
 
-            eta[jj] = (words[jj] >> 14) & 0xFFF; // eta is 12-bit wide
+            eta[jj] = words[jj].range(25, 14); // eta is 12-bit wide
             eta[jj] = eta[jj] | ((eta[jj][11]) ? 0xF000 : 0x0000); // pad the leading bits to 0 or 1 according to the sign bit
 
-            phi[jj] = (words[jj] >> 26) & 0x7FF; // phi is 11-bit wide
+            phi[jj] = words[jj].range(36, 26); // phi is 11-bit wide
             phi[jj] = phi[jj] | ((phi[jj][10]) ? 0xFC00 : 0x0000); // pad the leading bits to 0 or 1 according to the sign bit
 
-            pid[jj] = (words[jj] >> 37) & 0x3; // pid is 2-bit wide
+            pid[jj] = words[jj].range(39, 37); // pid is 2-bit wide
         }
 
         bool tile_0 = (stream_port_index == 0u);
         bool tile_1 = (stream_port_index == 1u);
-
-        auto& port_0 = tile_0 ? s0 : (tile_1 ? s2 : s4);            
-        auto& port_1 = tile_0 ? s1 : (tile_1 ? s3 : s5);    
         
         qdma_t x_pt, x_eta, x_phi, x_pid;
         
@@ -100,8 +91,12 @@ void mm2s(
             x_pt.keep_all();
             x_eta.keep_all();
 
-            port_0.write(x_pt);
-            port_1.write(x_eta);
+            switch (stream_port_index) 
+            {
+                case 0u: s0.write(x_pt); s1.write(x_eta); break;
+                case 1u: s2.write(x_pt); s3.write(x_eta); break;
+                default: s4.write(x_pt); s5.write(x_eta); break;
+            }
         }
 
         for (unsigned int jj=0; jj<num_cands[ii]; jj+=2)
@@ -119,8 +114,12 @@ void mm2s(
             x_phi.keep_all();
             x_pid.keep_all();
 
-            port_0.write(x_phi);
-            port_1.write(x_phi);
+            switch (stream_port_index) 
+            {
+                case 0u: s0.write(x_phi); s1.write(x_pid); break;
+                case 1u: s2.write(x_phi); s3.write(x_pid); break;
+                default: s4.write(x_phi); s5.write(x_pid); break;
+            }
         }
 
         event_base += num_cands[ii];
