@@ -12,6 +12,7 @@ data/
 **/_x
 **/.Xil
 **/proj
+**/simple-clients
 
 # exclude file formats
 *.xo
