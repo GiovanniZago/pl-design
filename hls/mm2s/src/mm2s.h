@@ -11,12 +11,11 @@
 
 using qdma_t = qdma_axis<32,0,0,0>;
 
-
 extern "C" 
 {
 
 void mm2s(
-    const unsigned long long* mem, 
+    const uint64_t* mem, 
     hls::stream<qdma_t>& s0,
     hls::stream<qdma_t>& s1,
     hls::stream<qdma_t>& s2,

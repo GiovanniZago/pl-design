@@ -1,7 +1,10 @@
+#pragma once
 #include <iostream>
 #include <vector>
 #include <queue>
 #include <fstream>
+
+namespace aie {
 
 struct BxData {
     unsigned int bx;
@@ -13,15 +16,19 @@ struct BxData {
     bool operator>(const BxData &other) const { return bx > other.bx; }
 };
 
+using mem_t = std::vector<uint64_t>;
 using MinHeap = std::priority_queue<BxData, std::vector<BxData>, std::greater<>>;
 
 class AIEGenerator {
     public:
-        AIEGenerator(const std::string &fname) : fname_(fname) {};
+        AIEGenerator(const std::string &fname) : fname_(std::move(fname)) {};
 
-        void generate() {
-            p_data_.clear();
-            h_data_.clear();
+        inline const mem_t& orbit_view() {
+            mem_t h_data;
+            mem_t p_data;
+
+            h_data.clear();
+            p_data.clear();
 
             MinHeap min_heap;
 
@@ -59,16 +66,29 @@ class AIEGenerator {
 
             while (!min_heap.empty()) {
                 const auto &bx_data = min_heap.top();
-                h_data_.push_back(*(bx_data.header_ptr));                                               // store header
-                p_data_.insert(p_data_.end(), bx_data.data_ptr, bx_data.data_ptr + bx_data.data_size);  // copy payload
+                h_data.push_back(*(bx_data.header_ptr));                                               // store header
+                p_data.insert(p_data.end(), bx_data.data_ptr, bx_data.data_ptr + bx_data.data_size);  // copy payload
                 min_heap.pop();
             }
+
+            // move the content of the two vectors inside a mem_ vector
+            mem_.clear();
+            mem_.reserve(h_data.size() + p_data.size());
+            mem_.insert(mem_.end(), h_data.begin(), h_data.end());
+            mem_.insert(mem_.end(), p_data.begin(), p_data.end());
+
+            // return 
+            return mem_;
         }   
 
+        inline const mem_t& get_orbit_view() const noexcept { return mem_; }
+
     private:
+        // file name
         std::string fname_;
-        std::vector<uint64_t> h_data_;
-        std::vector<uint64_t> p_data_;
+        
+        // vector with data inside
+        mem_t mem_;
 
         std::vector<unsigned char> read_raw_data(const std::string& fname) {
             std::ifstream file(fname, std::ios::binary | std::ios::ate); // set position to the end
@@ -95,3 +115,5 @@ class AIEGenerator {
             return buffer;
         };
 };
+
+} // namespace aie

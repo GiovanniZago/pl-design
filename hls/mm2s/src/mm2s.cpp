@@ -1,7 +1,7 @@
 #include "mm2s.h"
 
 void mm2s(
-    const unsigned long long* mem, 
+    const uint64_t* mem, 
     hls::stream<qdma_t>& s0,
     hls::stream<qdma_t>& s1,
     hls::stream<qdma_t>& s2,
@@ -27,8 +27,8 @@ void mm2s(
         headers[ii] = ap_uint<64>(mem[ii]);
     }
 
-    ap_uint<12> bx[ORBIT_SIZE];
-    ap_uint<32> orbit[ORBIT_SIZE];
+    ap_uint<12> bx       [ORBIT_SIZE];
+    ap_uint<32> orbit    [ORBIT_SIZE];
     ap_uint<12> num_cands[ORBIT_SIZE];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
@@ -60,7 +60,7 @@ void mm2s(
         {
             #pragma HLS PIPELINE II=1
 
-            pt[jj] = words[jj].range(13, 0); // pt is 13-bit wide
+            pt[jj]  = words[jj].range(13, 0); // pt is 13-bit wide
 
             eta[jj] = words[jj].range(25, 14); // eta is 12-bit wide
             eta[jj] = eta[jj] | ((eta[jj][11]) ? 0xF000 : 0x0000); // pad the leading bits to 0 or 1 according to the sign bit
@@ -70,9 +70,6 @@ void mm2s(
 
             pid[jj] = words[jj].range(39, 37); // pid is 2-bit wide
         }
-
-        bool tile_0 = (stream_port_index == 0u);
-        bool tile_1 = (stream_port_index == 1u);
         
         qdma_t x_pt, x_eta, x_phi, x_pid;
         
@@ -80,7 +77,9 @@ void mm2s(
         {
             #pragma HLS PIPELINE II=1
 
-            bool pair = (jj + 1 < num_cands[ii]);
+            const bool pair = (jj + 1 < num_cands[ii]);
+            const bool last = (jj + 2 >= num_cands[ii]);
+            const ap_uint<4> keep = pair ? ap_uint<4>(0xF) : ap_uint<4>(0x3);
             
             x_pt.data.range(15, 0) = pt[jj];
             x_pt.data.range(31,16) = pair ? pt[jj + 1] : ap_uint<16>(0);
@@ -88,8 +87,10 @@ void mm2s(
             x_eta.data.range(15, 0) = eta[jj];
             x_eta.data.range(31,16) = pair ? eta[jj + 1] : ap_int<16>(0);
 
-            x_pt.keep_all();
-            x_eta.keep_all();
+            x_pt.set_keep(keep);
+            x_eta.set_keep(keep);
+            x_pt.set_last(last);
+            x_eta.set_last(last);
 
             switch (stream_port_index) 
             {
@@ -104,6 +105,8 @@ void mm2s(
             #pragma HLS PIPELINE II=1
 
             bool pair = (jj + 1 < num_cands[ii]);
+            const bool last = (jj + 2 >= num_cands[ii]);
+            const ap_uint<4> keep = pair ? ap_uint<4>(0xF) : ap_uint<4>(0x3);
 
             x_phi.data.range(15, 0) = phi[jj];
             x_phi.data.range(31,16) = pair ? phi[jj + 1] : ap_int<16>(0);
@@ -111,8 +114,10 @@ void mm2s(
             x_pid.data.range(15, 0) = pid[jj];
             x_pid.data.range(31,16) = pair ? pid[jj + 1] : ap_uint<16>(0);
 
-            x_phi.keep_all();
-            x_pid.keep_all();
+            x_phi.set_keep(keep);
+            x_phi.set_keep(keep);
+            x_pid.set_last(last);
+            x_pid.set_last(last);
 
             switch (stream_port_index) 
             {

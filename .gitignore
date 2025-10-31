@@ -22,6 +22,8 @@ data/
 *.txt
 *.csv
 *.dump
+*.raw
+*.o
 
 # exclude scripts and specific files
 config.py
