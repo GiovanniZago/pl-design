@@ -23,7 +23,7 @@ class AIEGenerator {
     public:
         AIEGenerator(const std::string &fname) : fname_(std::move(fname)) {};
 
-        inline const mem_t& orbit_view() {
+        const mem_t& orbit_view() {
             mem_t h_data;
             mem_t p_data;
 
@@ -51,7 +51,7 @@ class AIEGenerator {
                 auto event_size = (*ptr) & 0xFFF; 
                 ++ptr;
                 
-                // calculate how many bytes are left from the current position to 
+                // calculate how many bytes are left from the current position to the end of the whole data block
                 const size_t space_left = buffer_end - ptr;
 
                 // get the min between space_left and event_size, in order not to overshoot the actual file size
@@ -66,7 +66,7 @@ class AIEGenerator {
 
             while (!min_heap.empty()) {
                 const auto &bx_data = min_heap.top();
-                h_data.push_back(*(bx_data.header_ptr));                                               // store header
+                h_data.push_back(*(bx_data.header_ptr));                                              // store header
                 p_data.insert(p_data.end(), bx_data.data_ptr, bx_data.data_ptr + bx_data.data_size);  // copy payload
                 min_heap.pop();
             }
@@ -111,6 +111,8 @@ class AIEGenerator {
             if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
                 throw std::runtime_error("Failed to read the file: " + fname);
             }
+
+            file.close();
             
             return buffer;
         };
