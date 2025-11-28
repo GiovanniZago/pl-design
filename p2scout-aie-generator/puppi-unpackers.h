@@ -30,7 +30,7 @@ inline bool readpid(const uint64_t data, short int &pdgid) {
     return (pid > 1);
 }
 
-inline void readall(const uint64_t data, uint16_t &pt, int16_t &eta, int16_t &phi, uint16_t& pid) {  //int
+inline void readall(const uint64_t data, uint16_t &pt, int16_t &eta, int16_t &phi, uint8_t& pid) {  //int
     pt = data & 0x3FFF;
     eta = ((data >> 25) & 1) ? ((data >> 14) | (-0x800)) : ((data >> 14) & (0xFFF));
     phi = ((data >> 36) & 1) ? ((data >> 26) | (-0x400)) : ((data >> 26) & (0x7FF));

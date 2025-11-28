@@ -28,7 +28,7 @@ void mm2s(
     }
 
     ap_uint<12> bx       [ORBIT_SIZE];
-    ap_uint<32> orbit    [ORBIT_SIZE];
+    ap_uint<32> orbit    [ORBIT_SIZE]; // probably not necessary to unpack the orbit for each header
     ap_uint<12> num_cands[ORBIT_SIZE];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
@@ -79,7 +79,7 @@ void mm2s(
 
             const bool pair = (jj + 1 < num_cands[ii]);
             const bool last = (jj + 2 >= num_cands[ii]);
-            const ap_uint<4> keep = pair ? ap_uint<4>(0xF) : ap_uint<4>(0x3);
+            const ap_uint<4> keep = pair ? ap_uint<4>(0xF) : ap_uint<4>(0x3); // each bit says whether a byte has to be kept or not
             
             x_pt.data.range(15, 0) = pt[jj];
             x_pt.data.range(31,16) = pair ? pt[jj + 1] : ap_uint<16>(0);

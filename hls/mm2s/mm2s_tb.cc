@@ -5,7 +5,7 @@
 int main() {
     // create view of data
     aie::AIEGenerator gen("/home/gizago/pl-design/p2scout-aie-generator/raws/puppi_WTo3Pion_PU200_orbit1.raw");
-    const auto& view = gen.orbit_view();
+    const auto& view = gen.get_orbit_view();
 
     // create streams
     hls::stream<qdma_axis<32,0,0,0>> s0, s1, s2, s3, s4, s5;
@@ -22,9 +22,9 @@ int main() {
         int16_t out_data_l = out_data & 0xFFF;
 
         std::cout << "out_data_h: " << out_data_h
-            << " out_data_l: " << out_data_l
-            << "  TKEEP: 0x" << std::hex << (int)out.keep
-            << "  TLAST: " << std::dec << (int)out.last
-            << std::endl;
+                << " out_data_l: " << out_data_l
+                << "  TKEEP: 0x" << std::hex << (int)out.keep
+                << "  TLAST: " << std::dec << (int)out.last
+                << std::endl;
     }
 }

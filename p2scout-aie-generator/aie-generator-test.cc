@@ -1,11 +1,10 @@
 #include "aie-generator.h"
-#include "puppi-unpackers.h"
 
 #include <iostream>
 
 int main() {
-    aie::AIEGenerator gen("raws/puppi_WTo3Pion_PU200_orbit1.raw");
-    const auto& view = gen.orbit_view();
+    aie::AIEGenerator gen("/home/gizago/pl-design/p2scout-aie-generator/raws/puppi_WTo3Pion_PU200_orbit1.raw");
+    const auto& view = gen.get_orbit_view();
     const auto* begin_view = view.data();
     const auto* end_view = view.data() + view.size();
 

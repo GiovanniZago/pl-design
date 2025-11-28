@@ -24,6 +24,7 @@ data/
 *.dump
 *.raw
 *.o
+*.root
 
 # exclude scripts and specific files
 config.py
