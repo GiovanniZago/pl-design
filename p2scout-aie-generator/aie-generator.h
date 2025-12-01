@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <limits>
 #include <numeric>
+#include <assert.h>
+
 
 #include "puppi-unpackers.h"
 
@@ -27,6 +29,7 @@ struct BxLookup {
 };
 
 struct CandidatesCollection {
+    std::vector<uint32_t> bx;
     std::vector<uint16_t> pt;
     std::vector<int16_t> eta;
     std::vector<int16_t> phi;
@@ -167,12 +170,19 @@ const CandidatesCollection AIEGenerator::unpack_events(const uint32_t bx, const 
     std::vector<uint32_t> bx_range;
     if (bx_end < std::numeric_limits<uint32_t>::max()) {
         bx_range.resize(bx_end - bx);
+        if (bx_end > 3563) {
+            throw std::runtime_error("bx_end must be in the range [0, 3563]");
+        }
         std::iota(bx_range.begin(), bx_range.end(), bx);
     } else {
         bx_range.push_back(bx);
     }
 
+    CandidatesCollection cands;
+
     for (auto bx_idx : bx_range) {
+        cands.bx.push_back(bx_idx);
+
         auto bx_begin = asmap_.offset[bx_idx];
         auto bx_end = asmap_.offset[bx_idx + 1];
         auto bx_size = bx_end - bx_begin;
@@ -185,9 +195,14 @@ const CandidatesCollection AIEGenerator::unpack_events(const uint32_t bx, const 
 
         for (unsigned int i = 0; i < bx_data.size(); ++i) {
             l1puppiUnpack::readall(bx_data[i], pt, eta, phi, pid);
-            
+            cands.pt.push_back(pt);
+            cands.eta.push_back(eta);
+            cands.phi.push_back(phi);
+            cands.pid.push_back(pid);
         }
     }
+
+    return cands;
 }
 
 void AIEGenerator::dump_aiesim_files(const std::string &fout0, 
@@ -205,6 +220,9 @@ void AIEGenerator::dump_aiesim_files(const std::string &fout0,
 
     std::vector<uint32_t> bx_range;
     if (bx_end < std::numeric_limits<uint32_t>::max()) {
+        if (bx_end > 3563) {
+            throw std::runtime_error("bx_end must be in the range [0, 3563]");
+        }
         bx_range.resize(bx_end - bx);
         std::iota(bx_range.begin(), bx_range.end(), bx);
     } else {
