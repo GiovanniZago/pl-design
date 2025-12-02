@@ -1,6 +1,7 @@
 #ifndef mm2s_h
 #define mm2s_h
 
+#include <cstdint>
 #include <hls_stream.h>
 #include <ap_int.h>
 #include <ap_axi_sdata.h>

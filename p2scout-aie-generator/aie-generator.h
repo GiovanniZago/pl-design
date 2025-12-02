@@ -248,7 +248,7 @@ void AIEGenerator::dump_aiesim_files(const std::string &fout0,
             l1puppiUnpack::readall(bx_data[i + 1], pt1, eta1, phi1, pid1);
 
             out0 << std::right << std::setw(10) << pt0 << std::setw(10) << pt1 << "\n";
-            out1 << std::right << std::setw(10) << phi0 << std::setw(10) << phi1 << "\n";
+            out1 << std::right << std::setw(10) << unsigned(pid0) << std::setw(10) << unsigned(pid1) << "\n";
         }
 
         for (unsigned int i = 0; i < bx_data.size(); i += 2) {
@@ -256,7 +256,7 @@ void AIEGenerator::dump_aiesim_files(const std::string &fout0,
             l1puppiUnpack::readall(bx_data[i + 1], pt1, eta1, phi1, pid1);
 
             out0 << std::right << std::setw(10) << eta0 << std::setw(10) << eta1 << "\n";
-            out1 << std::right << std::setw(10) << pid0 << std::setw(10) << pid1 << "\n";
+            out1 << std::right << std::setw(10) << phi0 << std::setw(10) << phi1 << "\n";
         }
     }
     
