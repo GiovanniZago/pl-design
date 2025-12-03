@@ -26,7 +26,6 @@ open_project "proj"
 set_top mm2s
 
 add_files src/mm2s.cpp
-add_files -tb mm2s_tb.cc
 
 open_solution -flow_target vitis "solution"
 set_part {xcvc1902-vsvd1760-2MP-e-S}
@@ -34,6 +33,7 @@ create_clock -period 2.777
 
 if {[lsearch -exact $modes csim] != -1} {
     puts "=== Running CSIM ==="
+    add_files -tb mm2s_tb_csim.cc
     set f0 [open "aiesim/data0.txt" "w"]
     close $f0
     set f1 [open "aiesim/data1.txt" "w"]
@@ -48,7 +48,8 @@ if {[lsearch -exact $modes csynth] != -1} {
 
 if {[lsearch -exact $modes cosim] != -1} {
     puts "=== Running COSIM ==="
-    cosim_design -tool xsim -rtl verilog -wave_debug -trace
+    add_files -tb mm2s_tb_cosim.cc
+    cosim_design -tool xsim -rtl verilog -wave_debug -trace_level port
 }
 
 if {[lsearch -exact $modes csynth] != -1 || [lsearch -exact $modes cosim] != -1} {

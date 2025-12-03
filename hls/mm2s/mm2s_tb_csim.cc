@@ -98,7 +98,9 @@ void dump_orbit_header(hls::stream<qdma_axis<32,0,0,0>> &s, const std::string &f
 
     qdma_axis<32,0,0,0> out = s.read();
 
-    uint32_t orbit = out.data.to_int();
+    int32_t orbit_data = out.data.to_int();
+    uint16_t obit_number_l = orbit_data & 0xFFFF;
+    uint16_t obit_number_h = (orbit_data >> 16) & 0xFFFF;
 
     out_file << std::right << std::setw(10) << "/" << std::setw(10) << orbit << "\n";
 }
@@ -163,4 +165,6 @@ int main() {
 
         stream_port_index = (stream_port_index + 1) % 3;
     }
+
+    return(0);
 }

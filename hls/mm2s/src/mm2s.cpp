@@ -9,7 +9,7 @@ void mm2s(
     hls::stream<qdma_t>& s4,
     hls::stream<qdma_t>& s5
 ) {
-    #pragma HLS INTERFACE m_axi port=mem offset=slave bundle=gmem 
+    #pragma HLS INTERFACE m_axi port=mem offset=slave bundle=gmem depth=200000
     #pragma HLS INTERFACE axis port=s0
     #pragma HLS INTERFACE axis port=s1
     #pragma HLS INTERFACE axis port=s2
@@ -22,8 +22,9 @@ void mm2s(
 
     ap_uint<64> headers[ORBIT_SIZE];
 
-    for (unsigned int ii=0; ii<ORBIT_SIZE; ii++) // burst memory access
+    for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
     {
+        # pragma HLS UNROLL
         headers[ii] = ap_uint<64>(mem[ii]);
     }
 
@@ -75,7 +76,8 @@ void mm2s(
         qdma_t bx_cands_header, orbit_header;
         bx_cands_header.data.range(15, 0)  = bx[ii] & 0x0FFF; // first write bx number
         bx_cands_header.data.range(31, 16) = num_cands[ii] & 0x0FFF; // then write number of candidates
-        orbit_header.data.range(31, 0)    = orbit[ii]; // on the other stream, write only the orbit, using the full 32b
+        orbit_header.data.range(15, 0)    = orbit[ii] & 0xFFFF;
+        orbit_header.data.range(31, 16)    = (orbit[ii] >> 16) & 0xFFFF;
 
         switch (stream_port_index) 
         {
@@ -128,8 +130,8 @@ void mm2s(
             x_phi.data.range(31,16) = pair ? phi[jj + 1] : ap_int<16>(0);
 
             x_eta.set_last(last);
-            x_eta.set_last(keep);
-            x_phi.set_keep(last);
+            x_eta.set_keep(keep);
+            x_phi.set_last(last);
             x_phi.set_keep(keep);
 
             switch (stream_port_index) 
