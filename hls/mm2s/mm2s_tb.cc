@@ -3,24 +3,27 @@
 #include "tb_utils.h"
 
 int main() {
-    // create view of data
     aie::AIEGenerator gen("/home/gizago/pl-design/p2scout-aie-generator/raws/puppi_WTo3Pion_PU200_orbit1.raw");
     const auto& view = gen.get_orbit_view();
     const auto& map = gen.get_association_map();
 
-    // create streams
     hls::stream<qdma_axis<32,0,0,0>> s0, s1, s2, s3, s4, s5;
 
-    // run kernel
-    mm2s(view.data(), s0, s1, s2, s3, s4, s5);
+    // use static memory because dynamic memory is not allowed
+    constexpr size_t mem_size = 200000;
+    static uint64_t mem[mem_size] = { 0u };
+    std::memcpy(mem, view.data(), view.size() * sizeof(uint64_t));
+
+    mm2s(mem, s0, s1, s2, s3, s4, s5);
 
     // check results
     unsigned int stream_port_index = 0u;
 
     for (auto bx_idx : map.bx) {
-        std::cout << " ---- Reading output for bx " << bx_idx << " ----" << std::endl;
         auto bx_begin = map.offset[bx_idx];
         auto bx_end = map.offset[bx_idx + 1];
+
+        std::cout << " ---- Reading output for bx " << bx_idx << " ----" << std::endl;
         std::cout << "bx begin: " << bx_begin << std::endl;
         std::cout << "bx_end: " << bx_end << std::endl;
 
@@ -62,6 +65,6 @@ int main() {
 
         stream_port_index = (stream_port_index + 1) % 3;
     }
-
+    
     return 0;
 }

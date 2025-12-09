@@ -1,48 +1,50 @@
 #include "kernels.h"
 
 void interface_test(input_stream<int16> * __restrict in0, input_stream<int16> * __restrict in1, output_stream<int32> * __restrict out) {
-    // create buffers to store values from stream
-    const unsigned int MAX_CANDS = 208;
-    alignas(aie::vector_decl_align) int16 buf0[MAX_CANDS] = { 0 };
-    alignas(aie::vector_decl_align) int16 buf1[MAX_CANDS] = { 0 };
+    // read event metadata
+    const int16_t num_cands = readincr(in0);
+    const int16_t bx = readincr(in0);
+    const int16_t orbit_h = readincr(in1);
+    const int16_t orbit_l = readincr(in1);
+    const int32_t orbit = (orbit_h << 16) | orbit_l;
 
-    // create instance of tlast struct, so we can use it to read values from the stream (3rd >> overloading on the documentation)
-    aie::tlast<int16, bool> s0_handler{0, false};
-    aie::tlast<int16, bool> s1_handler{0, false};
+    // vectors
+    div_t res = div(num_cands, VEC_SIZE);
+    const int16_t num_vects = (res.quot == 0) ? 1 : (res.rem == 0) ? res.quot : res.quot + 1;
+    aie::vector<int16_t, VEC_SIZE> pt[num_vects] = { aie::broadcast<int16_t, VEC_SIZE>(0) };
+    aie::vector<int16_t, VEC_SIZE> eta[num_vects] = { aie::broadcast<int16_t, VEC_SIZE>(0) };
+    aie::vector<int16_t, VEC_SIZE> phi[num_vects] = { aie::broadcast<int16_t, VEC_SIZE>(0) };
+    aie::vector<int16_t, VEC_SIZE> pid[num_vects] = { aie::broadcast<int16_t, VEC_SIZE>(0) };
     
-    unsigned int ii = 0;
-
-    // read pt and eta
-    while ((!s0_handler.t_last) & (!s1_handler.t_last))
-    {   
-        // read pt
-        s0 >> s0_handler;
-        buf0[ii] = s0_handler.value;
-
-        // read eta
-        s1 >> s1_handler;
-        buf1[ii] = s1_handler.value;
-
-        ++ii;
+    // buffers
+    const int16_t num_ele = num_vects * VEC_SIZE;
+    int16_t pt_buff[num_ele] = { 0 };
+    int16_t eta_buff[num_ele] = { 0 };
+    int16_t phi_buff[num_ele] = { 0 };
+    int16_t pid_buff[num_ele] = { 0 };
+    
+    const int16_t num_read = (num_cands % 2) ? num_cands : num_cands + 1;
+    
+    for (int32_t ii = 0; ii < num_read; ++i) {
+        pt_buff[ii] = readincr(in0);
+        pid_buff[ii] = readincr(in1);
     }
 
-    div_t result_a = div(ii, (unsigned int) 32);
-    
-    if (result_a.quot == 0) {
-        const int NUM_VECT_A = 1;
-    } else {
-        const int NUM_VECT_A = (result_a.rem == 0) ? result_a.quot : result_a.quot + 1;
+    for (int32_t ii = 0; ii < num_read; ++i) {
+        eta_buff[ii] = readincr(in0);
+        phi_buff[ii] = readincr(in1);
     }
 
-    aie::vector<int16, 32> pt[NUM_VECT_A] = { aie::broadcast<int16, 32>(0) };
-    aie::vector<int16, 32> eta[NUM_VECT_A] = { aie::broadcast<int16, 32>(0) };
-
-    aie::vector<int16, 32> *vec_ptr0 = (aie::vector<int16, 32> *) buf0; 
-    aie::vector<int16, 32> *vec_ptr1 = (aie::vector<int16, 32> *) buf1; 
-
-    for (unsigned int vidx = 0; vidx < NUM_VECT_A; vidx++) {
-        pt[vidx].load(vec_ptr0);
-        eta[vidx].load(vec_ptr1);
+    // vector pointers
+    aie::vector<int16_t, VEC_SIZE> *pt_ptr = (aie::vector<int16_t, VEC_SIZE> *) pt_buff;
+    aie::vector<int16_t, VEC_SIZE> *eta_ptr = (aie::vector<int16_t, VEC_SIZE> *) eta_buff;
+    aie::vector<int16_t, VEC_SIZE> *phi_ptr = (aie::vector<int16_t, VEC_SIZE> *) phi_buff;
+    aie::vector<int16_t, VEC_SIZE> *pid_ptr = (aie::vector<int16_t, VEC_SIZE> *) pid_buff;
+    
+    // fill vectors
+    for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {
+        pt[vec_idx].load_v<VEC_SIZE>(pt_ptr);
+        eta[vec_idx].load_v<VEC_SIZE>(eta_ptr);
         ++vec_ptr0;
         ++vec_ptr1;
     }

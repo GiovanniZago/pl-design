@@ -66,7 +66,7 @@ void mm2s(
             eta[jj] = words[jj].range(25, 14); // eta is 12-bit wide
             eta[jj] = eta[jj] | ((eta[jj][11]) ? 0xF000 : 0x0000); // pad the leading bits to 0 or 1 according to the sign bit
 
-            phi[jj] = words[jj].range(36, 26); // phi is 11-bit wide
+            phi[jj] = words[jj].range(36, 26); // phi is 11-bit wide 
             phi[jj] = phi[jj] << 5; // rescale phi to 16 bits, no need to pad any bit
             // phi[jj] = phi[jj] | ((phi[jj][10]) ? 0xF800 : 0x0000); // pad the leading bits to 0 or 1 according to the sign bit
 
@@ -76,8 +76,12 @@ void mm2s(
         qdma_t bx_cands_header, orbit_header;
         bx_cands_header.data.range(15, 0)  = bx[ii] & 0x0FFF; // first write bx number
         bx_cands_header.data.range(31, 16) = num_cands[ii] & 0x0FFF; // then write number of candidates
-        orbit_header.data.range(15, 0)    = orbit[ii] & 0xFFFF;
-        orbit_header.data.range(31, 16)    = (orbit[ii] >> 16) & 0xFFFF;
+        bx_cands_header.set_keep(ap_uint<4>(0xF)); // keep all bytes
+        bx_cands_header.set_last(0); // set tlast
+
+        orbit_header.data.range(31, 0) = orbit[ii]; // the orbit number is 32b wide so it fills the whole word
+        orbit_header.set_keep(ap_uint<4>(0xF)); // keep all bytes
+        orbit_header.set_last(0); // set last
 
         switch (stream_port_index) 
         {
@@ -87,7 +91,11 @@ void mm2s(
         }
         
         qdma_t x_pt, x_eta, x_phi, x_pid;
-        
+        x_pt.data  = 0; x_pt.keep  = 0; x_pt.last  = 0;
+        x_eta.data = 0; x_eta.keep = 0; x_eta.last = 0;
+        x_phi.data = 0; x_phi.keep = 0; x_phi.last = 0;
+        x_pid.data = 0; x_pid.keep = 0; x_pid.last = 0;
+
         for (unsigned int jj=0; jj<num_cands[ii]; jj+=2)
         {
             #pragma HLS PIPELINE II=1
