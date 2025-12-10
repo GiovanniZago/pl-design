@@ -28,6 +28,9 @@ data/
 
 # exclude scripts and specific files
 config.py
+**/Work
+**/x86sim
+*.a
 
 # allow only specific files
 !link/system.cfg

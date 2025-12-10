@@ -9,7 +9,7 @@ int main() {
 
     hls::stream<qdma_axis<32,0,0,0>> s0, s1, s2, s3, s4, s5;
 
-    // use static memory because dynamic memory is not allowed
+    // use static memory because dynamic memory is not allowed in cosim
     constexpr size_t mem_size = 200000;
     static uint64_t mem[mem_size] = { 0u };
     std::memcpy(mem, view.data(), view.size() * sizeof(uint64_t));
@@ -40,26 +40,27 @@ int main() {
 
         std::cout << "Steps: " << steps << std::endl;
 
+        bool split = false;
         switch (stream_port_index) {
             case 0u: 
-                dump_bx_cands_header(s0, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt");
-                dump_orbit_header(s1, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt");
-                dump_pt_eta_stream(s0, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps);
-                dump_pid_phi_stream(s1, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps);
+                dump_bx_cands_header(s0, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", split=split);
+                dump_orbit_header(s1, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", split=split);
+                dump_pt_eta_stream(s0, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps, split=split);
+                dump_pid_phi_stream(s1, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps, split=split);
                 break;
 
             case 1u: 
-                dump_bx_cands_header(s2, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt");
-                dump_orbit_header(s3, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt");
-                dump_pt_eta_stream(s2, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps);
-                dump_pid_phi_stream(s3, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps);
+                dump_bx_cands_header(s2, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", split=split);
+                dump_orbit_header(s3, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", split=split);
+                dump_pt_eta_stream(s2, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps, split=split);
+                dump_pid_phi_stream(s3, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps, split=split);
                 break;
 
             default: 
-                dump_bx_cands_header(s4, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt");
-                dump_orbit_header(s5, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt");
-                dump_pt_eta_stream(s4, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps);
-                dump_pid_phi_stream(s5, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps);
+                dump_bx_cands_header(s4, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", split=split);
+                dump_orbit_header(s5, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", split=split);
+                dump_pt_eta_stream(s4, "/home/gizago/pl-design/hls/mm2s/aiesim/data0.txt", steps, split=split);
+                dump_pid_phi_stream(s5, "/home/gizago/pl-design/hls/mm2s/aiesim/data1.txt", steps, split=split);
                 break;
         }
 
