@@ -36,14 +36,14 @@ void stream_mux(input_stream<int32> * __restrict in0,
     alignas(aie::vector_decl_align) int16 pid_buff[num_ele];
     std::memset(pid_buff, 0, sizeof(pid_buff));
     
-    const int16 num_read = ((num_cands % 2) == 0) ? num_cands / 2 : (num_cands + 1) / 2;
+    const int16 num_cands_even = ((num_cands % 2) == 0) ? num_cands : num_cands + 1;
 
     #if defined(__X86SIM__)
-    printf("num_ele = %d, num_read = %d\n", num_ele, num_read);
+    printf("num_ele = %d, num_cands_even = %d\n", num_ele, num_cands_even);
     #endif
     
     int32 pt_word, pid_word;
-    for (int32_t ii = 0; ii < num_read; ii += 2) {
+    for (int32_t ii = 0; ii < num_cands_even; ii+=2) {
         pt_word = readincr(in0);
         pid_word = readincr(in1);
 
@@ -54,7 +54,7 @@ void stream_mux(input_stream<int32> * __restrict in0,
     }
 
     int32 eta_word, phi_word;
-    for (int32_t ii = 0; ii < num_read; ii += 2) {
+    for (int32_t ii = 0; ii < num_cands_even; ii+=2) {
         eta_word = readincr(in0);
         phi_word = readincr(in1);
 
@@ -65,22 +65,26 @@ void stream_mux(input_stream<int32> * __restrict in0,
     }
 
     #if defined(__X86SIM__)
-    for (int32_t ii = 0; ii < num_read; ++ii) {
+    printf("pt_buff: ");
+    for (int32_t ii = 0; ii < num_ele; ++ii) {
         printf("%d  ", pt_buff[ii]);
     }
     printf("\n");
 
-    for (int32_t ii = 0; ii < num_read; ++ii) {
+    printf("pid_buff: ");
+    for (int32_t ii = 0; ii < num_ele; ++ii) {
         printf("%d  ", pid_buff[ii]);
     }
     printf("\n");
 
-    for (int32_t ii = 0; ii < num_read; ++ii) {
+    printf("eta_buff: ");
+    for (int32_t ii = 0; ii < num_ele; ++ii) {
         printf("%d  ", eta_buff[ii]);
     }
     printf("\n");
 
-    for (int32_t ii = 0; ii < num_read; ++ii) {
+    printf("phi_buff: ");
+    for (int32_t ii = 0; ii < num_ele; ++ii) {
         printf("%d  ", phi_buff[ii]);
     }
     printf("\n");
@@ -98,11 +102,22 @@ void stream_mux(input_stream<int32> * __restrict in0,
         eta[vec_idx] = eta_ptr[vec_idx];
         phi[vec_idx] = phi_ptr[vec_idx];
         pid[vec_idx] = pid_ptr[vec_idx];
-        ++pt_ptr;
-        ++eta_ptr;
-        ++phi_ptr;
-        ++pid_ptr;
     }
+
+    #if defined(__X86SIM__)
+    for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {
+        aie::print(pt[vec_idx], true, "pt[vec_idx]: ");
+    }
+    for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {
+        aie::print(pid[vec_idx], true, "pid[vec_idx]: ");
+    }
+    for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {
+        aie::print(eta[vec_idx], true, "eta[vec_idx]: ");
+    }
+    for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {
+        aie::print(phi[vec_idx], true, "phi[vec_idx]: ");
+    }
+    #endif
 
     // data loopback
     for (unsigned int vec_idx = 0; vec_idx < num_vects; ++vec_idx) {

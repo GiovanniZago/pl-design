@@ -6,7 +6,7 @@ TestGraph mygraph;
 
 int main(void) 
 {
-    int num_iter = 2;
+    int num_iter = 5;
 
     mygraph.init();
     mygraph.run(num_iter);

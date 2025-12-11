@@ -83,6 +83,10 @@ if {[lsearch -exact $modes cosim] != -1} {
     close $f0
     set f1 [open "aiesim/data1.txt" "w"]
     close $f1
+    set f0 [open "aiesim/data0_split.txt" "w"]
+    close $f0
+    set f1 [open "aiesim/data1_split.txt" "w"]
+    close $f1
     cosim_design -tool xsim -rtl verilog -trace_level all
     close_solution
 }
