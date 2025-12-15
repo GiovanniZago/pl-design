@@ -29,7 +29,7 @@ add_files -tb "mm2s_tb.cc tb_utils.cc"
 
 if {[lsearch -exact $modes csim] != -1} {
     open_solution -flow_target vitis "solution"
-    set_part {xcvc1902-vsvd1760-2MP-e-S}
+    set_part {xcvc1902-vsva2197-2MP-e-S}
     create_clock -period 2.777 
 
     puts "=== Running CSIM ==="
@@ -43,7 +43,7 @@ if {[lsearch -exact $modes csim] != -1} {
 
 if {[lsearch -exact $modes csynth] != -1} {
     open_solution -flow_target vitis -reset "solution"
-    set_part {xcvc1902-vsvd1760-2MP-e-S}
+    set_part {xcvc1902-vsva2197-2MP-e-S}
     create_clock -period 2.777 
 
     puts "=== Running CSYNTH ==="
@@ -56,7 +56,7 @@ if {[lsearch -exact $modes csynth] != -1} {
 
 if {[lsearch -exact $modes cosim] != -1} {
     open_solution -flow_target vitis "solution"
-    set_part {xcvc1902-vsvd1760-2MP-e-S}
+    set_part {xcvc1902-vsva2197-2MP-e-S}
     create_clock -period 2.777 
 
     set sol_dir [get_solution -directory]

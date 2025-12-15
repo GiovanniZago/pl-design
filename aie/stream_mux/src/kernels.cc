@@ -5,8 +5,8 @@ void stream_mux(input_stream<int32> * __restrict in0,
                 output_stream<int16> * __restrict out) {
     // unpack bx and num_cands
     const int32 word = readincr(in0);
-    const uint16_t bx = word & 0x0FFF;
-    const uint16_t num_cands = (word >> 16) & 0x0FFF;
+    const int16 bx = word & 0x0FFF;
+    const int16 num_cands = (word >> 16) & 0x0FFF;
 
     // read orbit number
     const uint32_t orbit = readincr(in1);
@@ -17,31 +17,26 @@ void stream_mux(input_stream<int32> * __restrict in0,
     #endif
 
     // vectors
-    div_t res = div(num_cands, VEC_SIZE);
-    const int16 num_vects = (res.quot == 0) ? 1 : (res.rem == 0) ? res.quot : res.quot + 1;
-    aie::vector<int16, VEC_SIZE> pt[num_vects], eta[num_vects], phi[num_vects], pid[num_vects];
-
-    #if defined(__X86SIM__)
-    printf("num_vects = %d\n", num_vects);
-    #endif
+    aie::vector<int16, VEC_SIZE> pt[MAX_VECTS] = { aie::broadcast<int16, VEC_SIZE>(0) };
+    aie::vector<int16, VEC_SIZE> eta[MAX_VECTS]= { aie::broadcast<int16, VEC_SIZE>(0) };
+    aie::vector<int16, VEC_SIZE> phi[MAX_VECTS]= { aie::broadcast<int16, VEC_SIZE>(0) };
+    aie::vector<int16, VEC_SIZE> pid[MAX_VECTS]= { aie::broadcast<int16, VEC_SIZE>(0) };
     
     // buffers
+    alignas(aie::vector_decl_align) int16 pt_buff[MAX_CANDS] = {};
+    alignas(aie::vector_decl_align) int16 eta_buff[MAX_CANDS] = {};
+    alignas(aie::vector_decl_align) int16 phi_buff[MAX_CANDS] = {};
+    alignas(aie::vector_decl_align) int16 pid_buff[MAX_CANDS] = {};
+    
+    int16 foo = (num_cands + (VEC_SIZE - 1)) / VEC_SIZE;  // ceil division
+    const int16 num_vects = (foo == 0) ? 1 : (foo > MAX_VECTS) ? MAX_VECTS : foo; // cap num_vects between 1 and MAX_VECTS
     const int16 num_ele = num_vects * VEC_SIZE;
-    alignas(aie::vector_decl_align) int16 pt_buff[num_ele];
-    std::memset(pt_buff, 0, sizeof(pt_buff));
-    alignas(aie::vector_decl_align) int16 eta_buff[num_ele];
-    std::memset(eta_buff, 0, sizeof(eta_buff));
-    alignas(aie::vector_decl_align) int16 phi_buff[num_ele];
-    std::memset(phi_buff, 0, sizeof(phi_buff));
-    alignas(aie::vector_decl_align) int16 pid_buff[num_ele];
-    std::memset(pid_buff, 0, sizeof(pid_buff));
-    
     const int16 num_cands_even = ((num_cands % 2) == 0) ? num_cands : num_cands + 1;
-
-    #if defined(__X86SIM__)
-    printf("num_ele = %d, num_cands_even = %d\n", num_ele, num_cands_even);
-    #endif
     
+    #if defined(__X86SIM__)
+    printf("num_vects = %d, num_ele = %d, num_cands_even = %d\n", num_vects, num, num_cands_even);
+    #endif
+
     int32 pt_word, pid_word;
     for (int32_t ii = 0; ii < num_cands_even; ii+=2) {
         pt_word = readincr(in0);

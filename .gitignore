@@ -25,6 +25,7 @@ data/
 *.raw
 *.o
 *.root
+*.db
 
 # exclude scripts and specific files
 config.py
@@ -32,6 +33,7 @@ config.py
 **/x86sim
 *.a
 **/Work*
+**/*out*
 
 # allow only specific files
 !link/system.cfg

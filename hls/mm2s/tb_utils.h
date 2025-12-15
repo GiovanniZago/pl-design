@@ -1,5 +1,5 @@
-#include "/tools/Xilinx/Vitis_HLS/2022.1/include/ap_axi_sdata.h"
-#include "/tools/Xilinx/Vitis_HLS/2022.1/include/hls_stream.h"
+#include "/opt/Xilinx/Vitis_HLS/2024.1/include/ap_axi_sdata.h"
+#include "/opt/Xilinx/Vitis_HLS/2024.1/include/hls_stream.h"
 #include <fstream>
 
 void dump_pt_eta_stream(hls::stream<qdma_axis<32,0,0,0>> &s, 

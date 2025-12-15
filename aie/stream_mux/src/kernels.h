@@ -3,10 +3,9 @@
 #include "aie_api/aie_adf.hpp"
 #include "aie_api/utils.hpp"
 
-#include <iostream>
-#include <cstdlib>
-
 static const int VEC_SIZE = 32;
+static const int MAX_VECTS = 7;
+static const int MAX_CANDS = VEC_SIZE * MAX_VECTS;
 
 using namespace adf;
 

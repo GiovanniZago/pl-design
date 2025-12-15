@@ -29,7 +29,7 @@ void mm2s(
     }
 
     ap_uint<12> bx       [ORBIT_SIZE];
-    ap_uint<32> orbit    [ORBIT_SIZE]; // probably not necessary to unpack the orbit for each header
+    ap_uint<32> orbit    [ORBIT_SIZE];
     ap_uint<12> num_cands[ORBIT_SIZE];
 
     for (unsigned int ii=0; ii<ORBIT_SIZE; ii++)
